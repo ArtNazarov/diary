@@ -1,0 +1,1 @@
+<?phpheader('Location: http://your.domain/test/testdb.php');exit;
