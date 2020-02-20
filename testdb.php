@@ -1,9 +1,16 @@
     <?php
+    require_once(__DIR__ . '/calendar.php');
     // Конфиг
-    define("dbname", '');
-    define("dbuser", "");
-    define("dbpass", '');
-    define("dbhost", '');
+    require_once(__DIR__ . '/config.php');
+
+    function getConn(){
+        $conn = new mysqli(dbhost, dbuser, dbpass, dbname);
+        // Check connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+        return $conn;
+    }
 
     function displayData(){
 
@@ -22,8 +29,14 @@
         // output data of each row
         while($row = $result->fetch_assoc()) {
             $rowid = $row["id"];
+            $date = $row['date'];
+            $timestamp = strtotime($date);
+
+            $year = date('Y', $timestamp);
+            $month = date('m', $timestamp);
             $html .= "id: " . $row["id"]. " | Ситуация: " . substr($row["situation"], 0, 22) . " | Дата " . $row["date"].
-             "   <a href='/test/testdb.php?action=details&id=$rowid'>Прочитать</a> <br>";
+             "   <a href='/test/testdb.php?action=details&id=$rowid'>Прочитать</a>  ";
+            $html .=  "<a href='/test/testdb.php?action=calendar&year=$year&month=$month'>В календарь</a><br>";
         }
     } else {
         $html = "0 results";
@@ -218,6 +231,16 @@
         return $vars;
     }
 
+    function viewCalendar(){
+        isset($_GET['month']) ? $month = (int)$_GET['month'] : $month = '2';
+        isset($_GET['month']) ? $year = (int)$_GET['year'] : $year = '2020';
+        $calendar = output_calendar($month, $year);
+        $vars = [];
+        $vars['month'] = $month;
+        $vars['year'] = $year;
+        $vars['calendar'] = $calendar;
+        return $vars;
+    }
 
     function make_view($flow, $variable, $value){
        return str_replace('%'.$variable.'%', $value, $flow);
@@ -256,6 +279,14 @@
 
         break;
         }
+        case 'calendar'     : {
+            $result['use']='tpl_calendar';
+            $vars = viewCalendar();
+            foreach ($vars as $name => $value){
+                $result['vars'][$name] = $value;
+            };
+
+            break;}
         default : { $result['use']='tpl_gen';
                     $result['vars']['content'] = 'НЕИЗВЕСТНОЕ ДЕЙСТВИЕ';
                     break;}
@@ -281,7 +312,8 @@
             'tpl_save' => file_get_contents(__DIR__ . '/save.tpl'),
             'tpl_update' => file_get_contents(__DIR__ . '/update.tpl'),
             'tpl_delete' => file_get_contents(__DIR__ . '/delete.tpl'),
-            'tpl_add' => file_get_contents(__DIR__ . '/add.tpl')];
+            'tpl_add' => file_get_contents(__DIR__ . '/add.tpl'),
+            'tpl_calendar' => file_get_contents(__DIR__ . '/calendar.tpl'),];
         $load = view($templates, dispatch());
         echo view($templates, [ 'vars'=>['load'=>$load], 'use'=>'boot']);
     }
