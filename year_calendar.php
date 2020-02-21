@@ -1,5 +1,6 @@
 ﻿<?php
-
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once(__DIR__ . '/config.php');
 
 require_once(__DIR__ . '/calendar_helpers.php');
@@ -12,7 +13,7 @@ function year_addFromDb(&$cal, $year){
         $date = $row['date'];
         $id = $row['id'];
         $situation = mb_substr($row['situation'], 0, 16);
-        $month = intval( @date('n', $row['date']) );
+        $month = intval( date('n', strtotime($row['date'])) );
        // print_r($month);
         $place = getWeekday($date);
         $index_of_row=weekOfMonth($date);
