@@ -1,5 +1,6 @@
     <?php
     require_once(__DIR__ . '/calendar.php');
+    require_once(__DIR__ . '/year_calendar.php');
     // Конфиг
     require_once(__DIR__ . '/config.php');
 
@@ -241,12 +242,21 @@ border-bottom-right-radius: 10px;
 
     function viewCalendar(){
         isset($_GET['month']) ? $month = (int)$_GET['month'] : $month = '2';
-        isset($_GET['month']) ? $year = (int)$_GET['year'] : $year = '2020';
-        $calendar = output_calendar($month, $year);
+        isset($_GET['year']) ? $year = (int)$_GET['year'] : $year = '2020';
+        $calendar = output_calendar($month, $year, true, NULL);
         $vars = [];
         $vars['month'] = $month;
         $vars['year'] = $year;
         $vars['calendar'] = $calendar;
+        return $vars;
+    }
+
+    function viewYearCalendar(){
+        isset($_GET['year']) ? $year = (int)$_GET['year'] : $year = '2020';
+        $year_calendar = output_year_calendar($year);
+        $vars = [];
+        $vars['year'] = $year;
+        $vars['year_calendar'] = $year_calendar;
         return $vars;
     }
 
@@ -295,6 +305,14 @@ border-bottom-right-radius: 10px;
             };
 
             break;}
+        case 'year_calendar'     : {
+            $result['use']='tpl_year_calendar';
+            $vars = viewYearCalendar();
+            foreach ($vars as $name => $value){
+                $result['vars'][$name] = $value;
+            };
+
+            break;}
         default : { $result['use']='tpl_gen';
                     $result['vars']['content'] = 'НЕИЗВЕСТНОЕ ДЕЙСТВИЕ';
                     break;}
@@ -321,7 +339,8 @@ border-bottom-right-radius: 10px;
             'tpl_update' => file_get_contents(__DIR__ . '/update.tpl'),
             'tpl_delete' => file_get_contents(__DIR__ . '/delete.tpl'),
             'tpl_add' => file_get_contents(__DIR__ . '/add.tpl'),
-            'tpl_calendar' => file_get_contents(__DIR__ . '/calendar.tpl'),];
+            'tpl_calendar' => file_get_contents(__DIR__ . '/calendar.tpl'),
+            'tpl_year_calendar' => file_get_contents(__DIR__ . '/year_calendar.tpl'),];
         $load = view($templates, dispatch());
         echo view($templates, [ 'vars'=>['load'=>$load], 'use'=>'boot']);
     }
