@@ -24,7 +24,14 @@
 
     $sql = "SELECT id, situation, date FROM diary";
     $result = $conn->query($sql);
-    $html = "";
+    $html = "<style>.note 
+{float:left; border:thin solid #000; display:block; width:25%;height:auto;
+padding:10px; margin:10px;
+-webkit-border-bottom-right-radius: 10px;
+-moz-border-radius-bottomright: 10px;
+border-bottom-right-radius: 10px;
+}
+</style><div>";
     if ($result->num_rows > 0) {
         // output data of each row
         while($row = $result->fetch_assoc()) {
@@ -34,13 +41,14 @@
 
             $year = date('Y', $timestamp);
             $month = date('m', $timestamp);
-            $html .= "id: " . $row["id"]. " | Ситуация: " . substr($row["situation"], 0, 22) . " | Дата " . $row["date"].
+            $html .= "<div class='note'> id: " . $row["id"]. " | Ситуация: " . mb_substr($row["situation"], 0, 22) . " | Дата " . $row["date"].
              "   <a href='/test/testdb.php?action=details&id=$rowid'>Прочитать</a>  ";
-            $html .=  "<a href='/test/testdb.php?action=calendar&year=$year&month=$month'>В календарь</a><br>";
+            $html .=  "<a href='/test/testdb.php?action=calendar&year=$year&month=$month'>В календарь</a></div>";
         }
     } else {
         $html = "0 results";
     }
+    $html .= "<div style='clear:both'></div>";
     $conn->close();
     return $html;
     }
