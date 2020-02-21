@@ -1,6 +1,7 @@
     <?php
     require_once(__DIR__ . '/calendar.php');
     require_once(__DIR__ . '/year_calendar.php');
+    require_once(__DIR__ . '/nav_months.php');
     // Конфиг
     require_once(__DIR__ . '/config.php');
 
@@ -248,6 +249,13 @@ border-bottom-right-radius: 10px;
         $vars['month'] = $month;
         $vars['year'] = $year;
         $vars['calendar'] = $calendar;
+        $date = "$year-$month-1";
+        $pm = nav_prev_month($date);
+        $nm = nav_next_month($date);
+        $vars['nmonth'] = $nm['m'];
+        $vars['nyear'] = $nm['y'];
+        $vars['pmonth'] = $pm['m'];
+        $vars['pyear'] = $pm['y'];
         return $vars;
     }
 
