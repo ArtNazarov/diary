@@ -16,14 +16,18 @@ function weekOfMonth($date) {
             // increment current week
             ++$w;
         }
+    };
+    if (getWeekday($date)==6){
+        $w--;
     }
-
     // now return
     return $w;
 }
 
 function getWeekday($date) {
-    return date('w', strtotime($date));
+    $i = date('w', strtotime($date));
+    ($i==0) ? $i = 6 : $i--;
+    return $i;
 }
 
 function addFromDb(&$cal, $month, $year){
@@ -33,7 +37,7 @@ function addFromDb(&$cal, $month, $year){
     while ($row = $result->fetch_assoc()){
         $date = $row['date'];
         $id = $row['id'];
-        $situation = substr($row['situation'], 0, 5);
+        $situation = mb_substr($row['situation'], 0, 16);
         $place = getWeekday($date);
         $index_of_row=weekOfMonth($date);
         $text = $cal[$index_of_row][$place]['text'];
@@ -45,7 +49,7 @@ function addFromDb(&$cal, $month, $year){
 function calendar($month, $year){
 
 $days = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-$rows = ceil($days / 7);
+$rows = ceil($days / 7)+1;
 // Init widget
 $calendar = [];
 $index_of_row = 0;
@@ -72,8 +76,8 @@ return $calendar;
 };
 
 function output_calendar($month, $year){
-  $daynames = ["Вс", "Пн", "Вт",
-  "Ср", "Чт", "Пт", "Сб"];
+  $daynames = [ "Пн", "Вт",
+  "Ср", "Чт", "Пт", "Сб", "Вс"];
   $cal = calendar($month, $year);
   $html = "<table border='1'>";
   for ($r=0;$r<count($cal);$r++){
@@ -87,9 +91,20 @@ function output_calendar($month, $year){
     };
     if ($r>0){
     for ($d=0;$d<count($daynames);$d++){
-      isset( $cal[$r][$d]["date"] ) ?
-      $html.="<td>" . $cal[$r][$d]["date"] . "<br/>" . $cal[$r][$d]['text'] . "</td>" :
-          $html.="<td> - </td>" ;
+
+        $style = "";
+        if ($d>5) { $style = " style=' background-color:#ff0000;' ";}
+
+        if ($cal[$r][$d]['text']!==""){
+            $style = " style=' background-color:#00ff00;' ";
+        };
+
+     if (isset( $cal[$r][$d]["date"] ))
+     {
+         $html.="<td $style>" . $cal[$r][$d]["date"] . "<br/>" . $cal[$r][$d]['text'] . "</td>";
+     }
+      else
+        { $html.="<td $style> - </td>"; } ;
 
     };
     };
