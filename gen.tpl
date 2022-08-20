@@ -1,6 +1,8 @@
+%user_form%
+<hr/>
 <h1>Дневник КТ - Список событий</h1>
 %content%
 <hr/>
-<a href="/test/testdb.php?action=add">Новое</a>
+%user_actions%
 <hr/>
-<b>Версия 0.01</b>
+<b>Версия 0.02</b>

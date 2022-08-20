@@ -1,1 +1,6 @@
-<?phpheader('Location: http://your.domain/test/testdb.php');exit;
+<?php
+$host = 'diary.artnazarov.ru';
+
+header("Location: http://$host/testdb.php");
+
+exit;

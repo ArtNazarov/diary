@@ -5,10 +5,16 @@ require_once(__DIR__ . '/config.php');
 
 require_once(__DIR__ . '/calendar_helpers.php');
 
-function year_addFromDb(&$cal, $year){
+function year_addFromDb(&$cal, $year, $username){
+    
     $conn = getConn();
-    $sql = "SELECT id, situation, date FROM diary WHERE year(date)=$year";
-    $result = $conn->query($sql);
+    
+    $sql = "SELECT id, situation, date FROM diary WHERE username = ? AND year(date)= ? ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("si", $username, $year);
+    $stmt->execute();
+    
+    $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()){
         $date = $row['date'];
         $id = $row['id'];
@@ -17,15 +23,15 @@ function year_addFromDb(&$cal, $year){
        // print_r($month);
         $place = getWeekday($date);
         $index_of_row=weekOfMonth($date);
-        $append = "<a href=/test/testdb.php?action=details&id=$id>$situation</a><br/>";
-        if (isset( $cal[$month][$index_of_row][$place]['text'] )){
-        $cal[$month][$index_of_row][$place]['text'] .= $append;
-            } else { $cal[$month][$index_of_row][$place]['text'] = $append;};
+        $append = "<a href=/testdb.php?action=details&id=$id>$situation</a><br/>";
+        if (isset( $cal[$month-1][$index_of_row][$place]['text'] )){
+        $cal[$month-1][$index_of_row][$place]['text'] .= $append;
+            } else { $cal[$month-1][$index_of_row][$place]['text'] = $append;};
     };
    //var_dump($cal[1]);
     $conn->close();
 }
-function year_calendar($year){
+function year_calendar($username, $year){
     $year_calendar = [];
     for ($month_index=0;$month_index<12;$month_index++){
 $month = $month_index + 1;
@@ -56,7 +62,7 @@ for($i=1;$i<=$days;$i++){
 
    // print_r( getWeekday("2020-2-1") . ' ' . weekOfMonth("2020-2-1") );
         };
-    year_addFromDb($year_calendar,  $year);
+    year_addFromDb($year_calendar,  $year, $username);
     return $year_calendar;
 };
 
@@ -70,18 +76,18 @@ function year_empty_row($cal, $month_index){
     return $empty;
 }
 
-function output_year_calendar($year){
+function output_year_calendar($username, $year){
   $daynames = [ "Пн", "Вт",
   "Ср", "Чт", "Пт", "Сб", "Вс"];
   $month_names = ['Январь', 'Февраль', 'Март',
   'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь',
       'Октябрь', 'Ноябрь', 'Декабрь'];
   // $month_names
-  $cal = year_calendar($year);
+  $cal = year_calendar($username, $year);
   $year_html = "";
   for ($month_index = 0;$month_index<12;$month_index++) {
       $mn = $month_index+1;
-      $html = "<table border='1'><h2><a href='/test/testdb.php?action=calendar&year=$year&month=$mn'>$month_names[$month_index]</a></h2>";
+      $html = "<table border='1'><h2><a href='/testdb.php?action=calendar&year=$year&month=$mn'>$month_names[$month_index]</a></h2>";
       for ($r = 0; $r < count($cal[$month_index]); $r++) {
           $html .= "<tr>";
           if ($r == 0) {
@@ -99,6 +105,11 @@ function output_year_calendar($year){
                   if ($d > 5) {
                       $style = " style=' background-color:#ff0000;' ";
                   }
+                  
+                  $month = $month_index + 1;
+                  $date = @ $cal[$month_index][$r][$d]["date"];
+                  $link_for_adding = "<br/><a href=/testdb.php?action=add_details&month=$month&year=$year&date=$date> [ + ] </a><br/>";
+
 
                   if (isset($cal[$month_index][$r][$d]['text'])) {
                       if ($cal[$month_index][$r][$d]['text'])
@@ -106,7 +117,7 @@ function output_year_calendar($year){
                   };
 
                   if (isset($cal[$month_index][$r][$d]["date"])) {
-                      $html .= "<td $style>" . $cal[$month_index][$r][$d]["date"] . "<br/>" . $cal[$month_index][$r][$d]['text'] . "</td>";
+                      $html .= "<td $style>" . $link_for_adding . $cal[$month_index][$r][$d]["date"] . "<br/>" . $cal[$month_index][$r][$d]['text'] . "</td>";
                   } else {
                       $html .= "<td $style> - </td>";
                   };
